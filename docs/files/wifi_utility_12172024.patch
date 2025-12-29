@@ -1,0 +1,77 @@
+--- a/Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/wifi_utility/COMPONENT_WCM/wifi_utility.c	Tue Dec 17 11:16:46 2024
++++ b/Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/wifi_utility/COMPONENT_WCM/wifi_utility.c	Tue Dec 17 11:18:39 2024
+@@ -44,6 +44,8 @@
+ #include <stdlib.h>
+ 
+ #include "cy_wcm.h"
++#include <whd.h>
++#include <whd_wifi_api.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -95,6 +97,7 @@
+ int start_ap           (int argc, char* argv[], tlv_buffer_t** data);
+ int stop_ap            (int argc, char* argv[], tlv_buffer_t** data);
+ int get_sta_ifconfig   (int argc, char* argv[], tlv_buffer_t** data);
++int itwt_setup         (int argc, char* argv[], tlv_buffer_t** data);
+ 
+ #define WIFI_COMMANDS_LIMITED_SET \
+     { (char*) "join",               join,             2, NULL, NULL, (char*) "<ssid> <open|wpa_aes|wpa_tkip|wpa2|wpa2_aes|wpa2_aes_sha256|wpa2_tkip|wpa2_fbt|wpa3|wpa3_wpa2> [password] [channel] [band<0=auto,1=5G,2=2.4G,3=6G>]"ESCAPE_SPACE_PROMPT, (char*) "Join an AP.(This command is deprecated and it will be removed in the future. Please use wifi_join command)"}, \
+@@ -112,6 +115,7 @@
+       (char*) "Start AP mode."}, \
+     { (char*) "stop_ap",            stop_ap,          0, NULL, NULL, (char*) "", (char*) "Stop AP mode."}, \
+     { (char*) "get_sta_ifconfig",   get_sta_ifconfig, 0, NULL, NULL, (char*) "", (char*) "Get IP & MAC address of STA."}, \
++    { (char*) "itwt_setup",         itwt_setup,       0, NULL, NULL, (char*) "<setup cmd:0=request,1=suggest,2=demand> <wake duration[256usec]> <mantissa> <exponent: wake interval=mantissa*(1<<exponent)> <flow_id:255=any> <trigger:0/1> <flow_type:0/1> <wake_time[usec]>", (char*) "Setup iTWT"}, \
+ 
+ /******************************************************
+  *                    Constants
+@@ -383,6 +387,49 @@
+          WIFI_INFO(("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]));
+     }
+     return 0;
++}
++
++extern whd_interface_t whd_ifs[2];
++
++int itwt_setup(int argc, char* argv[], tlv_buffer_t** data)
++{
++	cy_rslt_t result;
++	whd_itwt_setup_params_t twt_params;
++	uint64_t wake_time;
++
++	if (argc == 1) {
++	    result = (cy_rslt_t)whd_wifi_itwt_setup(whd_ifs[CY_WCM_INTERFACE_TYPE_STA], NULL);
++	    return result;
++	} else if (argc < 5) {
++		return -1;
++	}
++
++	memset(&twt_params, 0, sizeof(twt_params));
++	twt_params.setup_cmd = atoi(argv[1]);
++	twt_params.wake_duration = atoi(argv[2]);
++	twt_params.mantissa = atoi(argv[3]);
++	twt_params.exponent = atoi(argv[4]);
++	twt_params.flow_id = (argc >= 6) ? atoi(argv[5]) : 0xff;
++	twt_params.trigger = (argc >= 7) ? atoi(argv[6]) : 1;
++	twt_params.flow_type = (argc >= 8) ? atoi(argv[7]) : 1;
++	wake_time = (argc >= 9) ? atoll(argv[8]) : 0;
++	twt_params.wake_time_h = wake_time / 0x100000000;
++	twt_params.wake_time_l = wake_time % 0x100000000;
++
++#if 1
++	printf("setup_cmd=%d\n", twt_params.setup_cmd);
++	printf("wake_duration=%d\n", twt_params.wake_duration);
++	printf("mantissa=%d\n", twt_params.mantissa);
++	printf("exponent=%d\n", twt_params.exponent);
++	printf("flow id=%d\n", twt_params.flow_id);
++	printf("trigger=%d\n", twt_params.trigger);
++	printf("flow_type=%d\n", twt_params.flow_type);
++	printf("wake_time_h=%lx\n", twt_params.wake_time_h);
++	printf("wake_time_l=%lx\n", twt_params.wake_time_l);
++#endif
++    result = (cy_rslt_t)whd_wifi_itwt_setup(whd_ifs[CY_WCM_INTERFACE_TYPE_STA], &twt_params);
++
++    return result;
+ }
+ 
+ static cy_rslt_t start_ap_common(const char *ssid, const char *key, uint8_t channel, cy_wcm_security_t security_type, cy_wcm_custom_ie_info_t *custom_ie, cy_wcm_wifi_band_t band)
