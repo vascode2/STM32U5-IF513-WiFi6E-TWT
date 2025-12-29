@@ -19,9 +19,13 @@ Because the STM32U575I-EV lacks a native M.2 slot, this project details the hard
 * **Tools:** STM32CubeIDE, STM32CubeMX, Infineon AIROC Expansion Pack v1.7.0
 
 ## 📂 Documentation
-The full step-by-step application note is available in the `docs` folder. It covers hardware modification, driver patching, and TWT validation.
+The full step-by-step application note is hosted in this repository and also published online. It covers hardware modification, driver patching, and TWT validation.
 
-### [👉 Read the Full Integration Guide](docs/IF513-STM32U575I-TWT.md)
+### 🌐 [View the Official Published Guide](https://lairdcp.github.io/guides/IF513-STM32U575I-TWT/1.0/IF513-STM32U575I-TWT.html)
+
+You can also view the local version in the `docs` folder:
+
+### [👉 Read the Local Integration Guide](docs/IF513-STM32U575I-TWT.md)
 
 * **Hardware Setup:** M.2 to Micro-SD bridge configuration.
 * **Driver Patching:** Applying critical patches to the Infineon expansion pack.
@@ -30,3 +34,6 @@ The full step-by-step application note is available in the `docs` folder. It cov
 ## 📦 Resources
 * **Patches & Traces:** Available in [`docs/files`](docs/files/)
 * **Source Code:** Derived from Infineon AIROC STM32 Expansion Pack v1.7.0
+
+---
+*Disclaimer: This project serves as a reference implementation. Please refer to the official Ezurio documentation for hardware specifications.*
